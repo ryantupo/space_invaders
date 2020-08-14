@@ -1,6 +1,20 @@
 import pygame
 import random
 import math
+from datetime import datetime
+
+
+#plan
+
+#make it so space invaders die - done
+#i want there to be a specific amount of enemies for level 1
+# they move like the old space invaders - done
+#make the other types of space invaders == different points
+
+#make a flash spirite when you kill an invader
+
+
+
 
 from pygame import mixer
 # this inmitializes the pygame
@@ -48,10 +62,11 @@ number_of_enemies = 6
 
 for i in range(number_of_enemies):
     enemyImg.append(pygame.image.load('enemy.png'))
-    enemyX.append(random.randint(0,735))
-    enemyY.append(random.randint(50,60))
+    enemyX.append((i+1)*64)
+    enemyY.append(50)
     enemyX_change.append(4)
     enemyY_change.append(40)
+
 
 
 #ready state means you cant see the bullet
@@ -69,12 +84,16 @@ bullet_state = "ready"
 score_value = 0
 font = pygame.font.Font('fonty.ttf',32)
 
+#what level?
+level = 1
+
 text_X = 10
 text_Y = 10
 
 
 #game over text
 over_font = pygame.font.Font('fonty.ttf',64)
+won_font = pygame.font.Font('fonty.ttf',64)
 
 
 
@@ -82,11 +101,28 @@ def show_score(x,y):
     score = font.render("score : " + str(score_value),True, (255,255,255))
     screen.blit(score,(x,y))
 
+
+def next_level():
+    display_text=True
+    start_time = int(float(str(datetime.now()).split(":")[-1]))
+    over_text = over_font.render(f"Level {level}",True, (255,255,255))
+    if display_text:
+        screen.blit(over_text,(200,250))
+    if int(float(str(datetime.now()).split(":")[-1])) - start_time >1:
+        display_text = False
+
+
 def game_over_text():
     over_text = over_font.render("GAME OVER",True, (255,255,255))
     screen.blit(over_text,(200,250))
 
-
+def you_won_text():
+    global level
+    won_text = won_font.render("YOU WON",True, (255,255,255))
+    screen.blit(won_text,(200,250))
+    level+=1
+    next_level()
+    return
 
 def player(x,y):
     screen.blit(playerImg,(x,y))
@@ -108,6 +144,30 @@ def isCollision(enemyX,enemyY,bulletX,bulletY):
         return True
     else:
         return False
+
+def move_right():
+    for i in range(len(enemyImg)):
+        enemyY[i]+=enemyY_change[i]
+        enemyX_change[i] = 1.2
+
+def move_left():
+    for i in range(len(enemyImg)):
+        enemyY[i]+=enemyY_change[i]
+        enemyX_change[i] = -1.2
+
+def win_check():
+    dead_counter=0
+    for i in enemyY:
+        if i <=0:
+            dead_counter+=1
+    if dead_counter == (number_of_enemies):
+        you_won_text()
+
+#def game_reset():
+
+            
+
+            
 
 
 #infinate loop so the game keeps running 
@@ -155,7 +215,7 @@ while running:
     player(playerX,playerY)
     show_score(text_X,text_Y)
     
-
+    win_check()
 
     if playerX<=0:
         playerX=0
@@ -178,11 +238,9 @@ while running:
 
         enemyX[i] += enemyX_change[i]
         if enemyX[i]<=0:
-            enemyX_change[i] = 1.2
-            enemyY[i] += enemyY_change[i]        
+            move_right()      
         elif enemyX[i] >= 736:
-            enemyX_change[i] = -1.2
-            enemyY[i] += enemyY_change[i]
+            move_left()   
 
             #collision
         collision = isCollision(enemyX[i],enemyY[i],bulletX,bulletY)
@@ -193,8 +251,10 @@ while running:
             bullet_state = "ready"
             score_value+=1
             print(score_value)
-            enemyX[i] = random.randint(0,735)
-            enemyY[i] = random.randint(50,150)
+            enemyY[i]= -2000
+            
+
+
     
         enemy(enemyX[i], enemyY[i], i)
 
@@ -218,6 +278,7 @@ while running:
 
     #updates the screen
     pygame.display.update()
+
 
 
 
